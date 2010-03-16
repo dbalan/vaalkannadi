@@ -1,0 +1,15 @@
+This script automatically downloads the necessary files needed to Mirror a APT based mirror.
+It also maintains the necessary directory structures in the local directory for the mirror.
+
+The following variables need to be edited to get the desired mirror configuration
+
+$url        :       This needs to be set to the URL of the mirror
+                    eg:ftp://ftp.iitm.ac.in/debian/
+$mirror_dir :       This is the local directory to which the mirror is mirrored
+$proto      :       Protocol that needs to be followed
+@dists      :       The distributions that needs to be mirrred.
+		    eg:('karmic','karmic-backports','karmic-security','karmic-updates')
+@repos      :       Repos that needs to be mirrored
+		    eg:(For Ubuntu) 
+		    ('main','multiverse','universe','restricted')
+@archs      :     
