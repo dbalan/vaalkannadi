@@ -1,3 +1,22 @@
+The Vaalkannadi project was started as a method to set up an Ubuntu 
+Local Mirror in our college (College Of Engineering,Trivandrum).
+The server was running Solaris 5.10 and it was necessary to find
+a solution that would be highle portable in all platforms. So we 
+decided to write a mirroring script in Perl. However recently our 
+project goals have been expanded.
+
+   * Making the script completely dependent on Perl alone.
+
+   * Writing similar scripts for other Mirrors such as rpm
+
+   * Modularising the project
+
+   * Providing a simple and easy to use graphical interface
+
+   * Writing tools for Mirror Maintainers
+
+As the project evolves and grows we hope that it creates some input 
+to the open source community from which we have taken so much...
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
