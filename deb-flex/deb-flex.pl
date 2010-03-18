@@ -4,7 +4,7 @@
 # # Author: simula67 <simula67@gmail.com>
 # Thanks to h4nnibal<arjun1296@gmail.com> and dhananjay<mb.dhananjay@gmail.com>
 #
-#This program is free software; you can redistribute it and/or modify
+# This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
@@ -22,8 +22,8 @@
 ###########################################################################################
 #  CAUTION: This was intended to run on a solaris server (5.10)                           #
 # Dependencies :1)File::Path								  #
-#	      	2)File::chdir								  #
-#	      	3)lwp-download								  #
+#	      	2)LWP::Simple  								  #
+#	      	3)zcat               							  #
 ###########################################################################################
 
 use File::Path;
@@ -62,7 +62,10 @@ foreach $cur_dist (@dists) {
 	foreach $cur_arch (@archs) {
 	    mkpath("$mirror_dir/dists/$cur_dist/$cur_repo/$cur_arch");
 	    $CWD = "$mirror_dir/dists/$cur_dist/$cur_repo/$cur_arch";
-	    warn "Failed to fecth unless Packages.gz for $cur_dist,$cur_repo,$cur_arch" unless (getstore("$proto://$url/dists/$cur_dist/$cur_repo/$cur_arch/Packages.gz","$CWD/Packages.gz")==RC_OK);
+	    unless (getstore("$proto://$url/dists/$cur_dist/$cur_repo/$cur_arch/Packages.gz","$CWD/Packages.gz")==RC_OK) {
+		warn "Failed to fecth unless Packages.gz for $cur_dist,$cur_repo,$cur_arch";
+		next;
+	    }
 	    system("zcat $CWD/Packages.gz>Packages");
 	    open FILELIST,"<Packages" or die "Cant open the file";
 	    my $file_url;
@@ -78,8 +81,12 @@ foreach $cur_dist (@dists) {
 		$target_file=$1;
 		($target_dir,$file_name) = ( $1 =~ m/(\S*)\/(\S*)/);
 		mkpath("$mirror_dir/$target_dir/");
-		warn "Failed to mirror $cur_dist,$cur_repo,$cur_arch $file_url" unless(mirror("$proto://$file_url","$mirror_dir/$target_file")==RC_OK);
-		print "Done : $cur_dist,$cur_repo,$cur_arch : $file_name\n";
+		unless(mirror("$proto://$file_url","$mirror_dir/$target_file")==RC_OK) {
+		    warn "Failed to mirror $cur_dist,$cur_repo,$cur_arch : $file_name";
+		}
+		else {
+		    print "Done : $cur_dist,$cur_repo,$cur_arch : $file_name\n";
+		}
 	    }
 	    unlink("Packages");
 	}
