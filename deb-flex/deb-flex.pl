@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 # -*- coding: utf-8 -*-
 #
 # # Author: simula67 <simula67@gmail.com>
@@ -20,20 +20,20 @@
 
 
 ###########################################################################################
-#  CAUTION: This was intended to run on a solaris server (5.10) , but not tested yet :(   #
+#  CAUTION: This was intended to run on a solaris server (5.10)                           #
 # Dependencies :1)File::Path								  #
 #	      	2)File::chdir								  #
 #	      	3)lwp-download								  #
 ###########################################################################################
 
 use File::Path;
-use File::chdir;
+use LWP::Simple;
 ###########################
 # Configuration Variables #
 ###########################
 
 #This needs to be set to the URL of the mirror
-my $url ="ftp.iitm.ac.in/debian/";
+my $url ="192.168.2.6/repo";
 
 
 #This is the local directory to which the mirror is mirrored
@@ -62,22 +62,27 @@ foreach $cur_dist (@dists) {
 	foreach $cur_arch (@archs) {
 	    mkpath("$mirror_dir/dists/$cur_dist/$cur_repo/$cur_arch");
 	    $CWD = "$mirror_dir/dists/$cur_dist/$cur_repo/$cur_arch";
-	    system("lwp-download $proto://$url/dists/$cur_dist/$cur_repo/$cur_arch/Packages.gz $CWD");
-	    system("zcat Packages.gz>Packages");
+	    warn "Failed to fecth unless Packages.gz for $cur_dist,$cur_repo,$cur_arch" unless (getstore("$proto://$url/dists/$cur_dist/$cur_repo/$cur_arch/Packages.gz","$CWD/Packages.gz")==RC_OK);
+	    system("zcat $CWD/Packages.gz>Packages");
 	    open FILELIST,"<Packages" or die "Cant open the file";
 	    my $file_url;
 	    my $target_dir;
+	    my $target_file;
+	    my $file_name;
 	    while(<FILELIST>) {
 		chomp;
 		unless(m/^Filename: (\S*)/){
 		    next;
 		}
 		$file_url = "$url/$1";
-		($target_dir) = ( $1 =~ m/(\S*)\//);
+		$target_file=$1;
+		($target_dir,$file_name) = ( $1 =~ m/(\S*)\/(\S*)/);
 		mkpath("$mirror_dir/$target_dir/");
-		system("lwp-download $proto://$file_url $mirror_dir/$target_dir/");
+		warn "Failed to mirror $cur_dist,$cur_repo,$cur_arch $file_url" unless(mirror("$proto://$file_url","$mirror_dir/$target_file")==RC_OK);
+		print "Done : $cur_dist,$cur_repo,$cur_arch : $file_name\n";
 	    }
-	    system("rm -f Packages");
+	    unlink("Packages");
 	}
     }
 }
+
