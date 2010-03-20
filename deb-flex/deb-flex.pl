@@ -33,7 +33,7 @@ use LWP::Simple;
 ###########################
 
 #This needs to be set to the URL of the mirror
-my $url ="192.168.2.6/repo";
+my $url ="ftp.iitm.ac.in/ubuntu";
 
 
 #This is the local directory to which the mirror is mirrored
@@ -63,7 +63,7 @@ foreach $cur_dist (@dists) {
 	    mkpath("$mirror_dir/dists/$cur_dist/$cur_repo/$cur_arch");
 	    $CWD = "$mirror_dir/dists/$cur_dist/$cur_repo/$cur_arch";
 	    unless (getstore("$proto://$url/dists/$cur_dist/$cur_repo/$cur_arch/Packages.gz","$CWD/Packages.gz")==RC_OK) {
-		warn "Failed to fecth unless Packages.gz for $cur_dist,$cur_repo,$cur_arch";
+		warn "Failed to fetch Packages.gz for $cur_dist,$cur_repo,$cur_arch";
 		next;
 	    }
 	    system("zcat $CWD/Packages.gz>Packages");
@@ -72,6 +72,7 @@ foreach $cur_dist (@dists) {
 	    my $target_dir;
 	    my $target_file;
 	    my $file_name;
+	    my $resp_code;
 	    while(<FILELIST>) {
 		chomp;
 		unless(m/^Filename: (\S*)/){
@@ -81,15 +82,25 @@ foreach $cur_dist (@dists) {
 		$target_file=$1;
 		($target_dir,$file_name) = ( $1 =~ m/(\S*)\/(\S*)/);
 		mkpath("$mirror_dir/$target_dir/");
-		unless(mirror("$proto://$file_url","$mirror_dir/$target_file")==RC_OK) {
-		    warn "Failed to mirror $cur_dist,$cur_repo,$cur_arch : $file_name";
+		$resp_code=mirror("$proto://$file_url","$mirror_dir/$target_file");
+		if($resp_code==RC_OK) {
+		    print "Done           : $cur_dist,$cur_repo,$cur_arch : $file_name\n";
 		}
 		else {
-		    print "Done : $cur_dist,$cur_repo,$cur_arch : $file_name\n";
+		    if($resp_code==RC_NOT_MODIFIED) {
+			warn "Not Modified    : $cur_dist,$cur_repo,$cur_arch : $file_name\n";
+		    }
+		    else {
+			if($resp_code==RC_PARTIAL_CONTENT) {
+			    warn "Partial Content : $cur_dist,$cur_repo,$cur_arch : $file_name\n";
+			}
+			else {
+			    warn "Failed          : $cur_dist,$cur_repo,$cur_arch : $file_name";
+			}
+		    }
 		}
 	    }
 	    unlink("Packages");
 	}
     }
 }
-
