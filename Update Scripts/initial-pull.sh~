@@ -47,7 +47,7 @@ touch "$SYNC_LCK"
 # Create the log file and insert a timestamp
 log-it "starting sync on"
 
-rsync --verbose --recursive --times --links --hard-links --stats ${SYNC_SRC} ${SYC_MRR} || log-it "Failed to rsync"
+rsync --verbose --recursive --times --links --hard-links --stats ${SYNC_SRC} ${SYC_MRR} >> "$SYNC_LOG/$LOG_FILE"|| log-it "Failed to rsync"
 
 log-it "Successfully completed the Sync on"
 rm -f "$SYNC_LCK"

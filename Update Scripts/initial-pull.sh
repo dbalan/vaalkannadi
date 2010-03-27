@@ -16,6 +16,13 @@
 
 #'''Depends on rsync.'''
 
+# Function for logging
+log_it(){
+touch "$SYNC_LOGS/$LOG_FILE"
+echo "=============================================" >> "$SYNC_LOGS/$LOG_FILE"
+echo ">> $1 $(date --rfc-3339=second)"
+}
+
 # The address of the mirrors to pull from
 SYNC_SRC="$1/$2"
 MRR_HOME="/mirror"
@@ -27,12 +34,7 @@ SYNC_LCK="$SYNC_LOG/sync-progress.lck"
 # Log file.
 LOG_FILE="pkgsync_$(date +%Y%m%d-%H).log"
 
-# Function for logging
-log-it(){
-touch "$SYNC_LOGS/$LOG_FILE"
-echo "=============================================" >> "$SYNC_LOGS/$LOG_FILE"
-echo ">> $1 $(date --rfc-3339=second)"
-}
+
 
 
 #Make direectories in the system if not present.
@@ -45,10 +47,10 @@ echo ">> $1 $(date --rfc-3339=second)"
 touch "$SYNC_LCK"
 
 # Create the log file and insert a timestamp
-log-it "starting sync on"
+log_it "starting sync on"
 
 rsync --verbose --recursive --times --links --hard-links --stats ${SYNC_SRC} ${SYC_MRR} >> "$SYNC_LOG/$LOG_FILE"|| log-it "Failed to rsync"
 
-log-it "Successfully completed the Sync on"
+log_it "Successfully completed the Sync on"
 rm -f "$SYNC_LCK"
 
