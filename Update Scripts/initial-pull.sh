@@ -16,43 +16,39 @@
 
 #'''Depends on rsync.'''
 
-# The address of the mirrors to pull from.
-RSYNCSOURCE1="rsync://ftp.iitm.ac.in/linux/ubuntu 
-	      rsync://mirror.cse.iitk.ac.in/archlinux/
-	      rsync://ftp.iitm.ac.in/linux/debian/"
+# The address of the mirrors to pull from
+SYNC_SRC="$1/$2"
+MRR_HOME="/mirror"
 
-BASEDIR="/mirror/releases/ubuntu/ /mirror/releases/debian /mirror/releases/archlinux"
+SYNC_MRR="$MRR_HOME/releases/$2/"
+SYNC_LOG="$MRR_HOME/logs/$2/"
+SYNC_LCK="$SYNC_LOG/sync-progress.lck"
 
-# LOGPATH
-LOGPATH=/mirror/misc/logs/
+# Log file.
+LOG_FILE="pkgsync_$(date +%Y%m%d-%H).log"
 
-#Some functions
-fatal (){
-  echo $1
-  SWIT="1"
-}
-
-warn (){
-  date >> $LOGMIRROR/pulllog.txt
-  echo $1 >> $LOGMIRROR/pulllog.txt
-  echo "\n">> $LOGMIRROR/pulllog.txt
+# Function for logging
+log-it(){
+touch "$SYNC_LOGS/$LOG_FILE"
+echo "=============================================" >> "$SYNC_LOGS/$LOG_FILE"
+echo ">> $1 $(date --rfc-3339=second)"
 }
 
 
-for dirpaths in $BASEDIR
-  do
-# Make directories in the system if not present.
-    if [ ! -d ${dirpaths} ]; then
-      warn "${dirpaths} does not exist yet, create it and try again"
+#Make direectories in the system if not present.
+    if [ ! -d ${SYNC_MRR} ]; then
+      warn "${SYNC_MRR} does not exist yet, create it and try again"
     fi
   done
 
-# Do the actual pull
-while [ "$SWIT" != "0" ]
-  do 
-    warn "running"
-    SWIT="0"
-    rsync --verbose --recursive --times --links --hard-links --stats ${RSYNCSOURCE} ${BASEDIR} || fatal "Failed to rsync from ${RSYNCSOURCE}."
-  done
+[ -f $SYNC_LCK ] && exit 1
+touch "$SYNC_LCK"
 
-warn "Completed"
+# Create the log file and insert a timestamp
+log-it "starting sync on"
+
+rsync --verbose --recursive --times --links --hard-links --stats ${SYNC_SRC} ${SYC_MRR} >> "$SYNC_LOG/$LOG_FILE"|| log-it "Failed to rsync"
+
+log-it "Successfully completed the Sync on"
+rm -f "$SYNC_LCK"
+
